@@ -1,18 +1,39 @@
+
 version: 0.2
+
+env:
+  variables:
+    NODE_ENV: production
 
 phases:
   install:
     runtime-versions:
-      java: corretto17   # or corretto11 if your pom.xml needs Java 11
+      nodejs: 20
     commands:
-      - echo Installing Maven dependencies...
-      - mvn clean install
+      - echo "Node version:"
+      - node -v
+      - npm -v
+      - echo "Installing npm dependencies"
+      - |
+        if [ -f package-lock.json ]; then
+          echo "Found package-lock.json -> running npm ci"
+          npm ci
+        else
+          echo "No package-lock.json -> creating lockfile then running npm ci"
+          npm i --package-lock-only
+          npm ci
+        fi
+
+  pre_build:
+    commands:
+      - echo "Pre-build step (optional)"
 
   build:
     commands:
-      - echo Building WAR artifact...
-      - mvn package
+      - echo "Building application"
+      - npm run build || true
 
 artifacts:
   files:
     - '**/*'
+  discard-paths: no
